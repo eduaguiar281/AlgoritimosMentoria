@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AlgoritimosMentoria.DataStructures
 {
@@ -12,43 +9,69 @@ namespace AlgoritimosMentoria.DataStructures
         {
             bool continuar = true;
             Console.WriteLine("Digite sair para sair a qualquer momento...");
-            var aluno = new Aluno();
-            aluno.Nome = ObterDado("Informe o nome do aluno:", ref continuar);
-            aluno.Disciplina = ObterDado("Informe o nome do disciplina:", ref continuar);
-            int contador = 1;
-            while (continuar && contador <= 4)
+            var listaAluno = new List<Aluno>();
+            do
             {
-                ObterNotas(contador, aluno, ref  continuar);
-                if (continuar)
-                {
-                    contador++;
-                }
-                else
-                {
+                var aluno = new Aluno();
+                aluno.Nome = ObterDado("Informe o nome do aluno:", ref continuar);
+                if (!continuar)
                     break;
+                aluno.Disciplina = ObterDado("Informe o nome do disciplina:", ref continuar);
+                if (!continuar)
+                    break;
+
+                int contador = 0;
+                while (continuar && contador < 4)
+                {
+                    ObterNotas(contador, aluno, ref continuar);
+                    if (continuar)
+                    {
+                        contador++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                if (contador > 3)
+                {
+                    Calcular(aluno);
+                    listaAluno.Add(aluno);
+                    Console.WriteLine("Pressione qualquer tecla continuar...");
+                    Console.ReadKey();
+                    Console.Clear();
                 }
             }
-            if (contador > 4)
-            {
-                Calcular(aluno);
-            }
+            while (continuar);
+            Salvar(listaAluno);
             Console.WriteLine("Pressione qualquer tecla para finalizar!");
             Console.ReadKey();
         }
 
+        private static void Salvar(List<Aluno> listaAluno)
+        {
+            if (!listaAluno.Any())
+                return;
+            Console.WriteLine("Deseja Salvar? (S/N)");
+            if (Console.ReadLine().Equals("sim", StringComparison.OrdinalIgnoreCase))
+            {
+                var texto = new StringBuilder();
+                foreach(var aluno in listaAluno)
+                    texto.AppendLine($"{aluno.Nome}, {aluno.Disciplina}, {aluno.Notas[0]}, {aluno.Notas[1]}, {aluno.Notas[2]}, {aluno.Notas[3]}");
+
+                TextWriter w = new StreamWriter("c:\\TioAguiar\\alunos.csv");
+                w.Write(texto.ToString());
+                w.Flush();
+                w.Close();
+            }
+        }
+
         private static void ObterNotas(int bimestre, Aluno aluno, ref bool continuar)
         {
-            string dado = ObterDado($"Informe o nota do {bimestre}º bimestre", ref continuar);
+            string dado = ObterDado($"Informe o nota do {bimestre + 1}º bimestre", ref continuar);
             if (!continuar)
                 return;
-
-            switch (bimestre)
-            {
-                case 1: aluno.Nota1 = Convert.ToDecimal(dado); break;
-                case 2: aluno.Nota2 = Convert.ToDecimal(dado); break;
-                case 3: aluno.Nota3 = Convert.ToDecimal(dado); break;
-                case 4: aluno.Nota4 = Convert.ToDecimal(dado); break;
-            }
+            aluno.Notas[bimestre] = Convert.ToDecimal(dado);
         }
 
 
@@ -63,8 +86,7 @@ namespace AlgoritimosMentoria.DataStructures
 
         public static void Calcular(Aluno aluno)
         {
-            decimal totalNotas = aluno.Nota1 + aluno.Nota2 + aluno.Nota3 + aluno.Nota4;
-            decimal media = totalNotas / 4;
+            decimal media = aluno.Notas.Average();
             if (media < 5.0m)
                 Console.WriteLine($"""
                     O aluno {aluno.Nome} teve a média de {media} em {aluno.Disciplina}. 
